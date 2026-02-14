@@ -37,8 +37,13 @@ app.post('/generate-quiz', async (req, res) => {
         
         res.json(quizData);
 
-    } catch (error) {
-        console.error("AI ERROR:", error.message);
+} catch (error) {
+        // ここを詳細に書き換えます
+        console.error("--- EMERGENCY DEBUG START ---");
+        console.error("Error Name:", error.name);
+        console.error("Error Message:", error.message);
+        console.error("--- EMERGENCY DEBUG END ---");
+        
         res.status(500).json({ error: error.message });
     }
 });
