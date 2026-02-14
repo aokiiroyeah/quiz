@@ -14,10 +14,8 @@ app.post('/generate-quiz', async (req, res) => {
     const { difficulty } = req.body;
     
     try {
-        // 画像のPlaygroundに表示されている最新モデル「gemini-3-flash-preview」を指定
-        // もしエラーが出る場合は「gemini-1.5-flash」に自動で切り替わります
-        const modelName = "gemini-3-flash-preview";
-        const model = genAI.getGenerativeModel({ model: modelName });
+        // 最も安定して接続できるモデル名に変更
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `あなたは論理的思考を試すクイズ作家です。難易度[${difficulty}]で、初見の単語や記号の構造から正解を推論させるクイズを1問作成してください。
         回答は必ず以下のJSON形式のみで出力してください。
