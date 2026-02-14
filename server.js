@@ -7,19 +7,22 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// APIキーの取得
+// 環境変数からAPIキーを取得
 const apiKey = process.env.API_KEY;
-// APIキーの有無を起動時にチェック
-if (!apiKey) {
-    console.error("CRITICAL: API_KEY is not set in environment variables.");
-}
 const genAI = new GoogleGenerativeAI(apiKey);
 
 app.post('/generate-quiz', async (req, res) => {
     const { difficulty } = req.body;
     
+    // APIキーの存在チェック
+    if (!apiKey) {
+        console.error("CRITICAL: API_KEY is missing.");
+        return res.status(500).json({ error: "APIキーが設定されていません。" });
+    }
+
     try {
-        // モデル名を最も標準的な 'gemini-1.5-flash' に固定
+        // 最も標準的なモデル名指定に変更。
+        // これで 404 が出る場合は Google AI Studio 側の制限が考えられます。
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `あなたは論理的思考を試すクイズ作家です。難易度[${difficulty}]で、初見の単語や記号の構造から正解を推論させるクイズを1問作成してください。
@@ -37,13 +40,14 @@ app.post('/generate-quiz', async (req, res) => {
         const response = await result.response;
         const text = response.text();
 
-        // JSON部分だけを抽出する安全策
+        // AIの応答からJSONを抽出する防弾処理
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         const quizData = JSON.parse(jsonMatch ? jsonMatch[0] : text);
         
         res.json(quizData);
 
     } catch (error) {
+        // エラー内容を詳細にログ出力
         console.error("AI ERROR DETAILS:", error.message);
         res.status(500).json({ error: error.message });
     }
