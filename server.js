@@ -15,15 +15,12 @@ app.post('/generate-quiz', async (req, res) => {
     const { difficulty } = req.body;
     
     try {
-        // 404エラーを回避するため、モデル名を「models/」付きで明示的に指定します
-        // これにより、SDKが正しいエンドポイントを見つけられるようになります
-        const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
-            apiVersion: 'v1beta' // 1.5系を確実に叩くための設定
-        });
+        // v1で404が出る場合、SDKの自動解決に頼らず、最新モデルを明示的に指定します
+        // この記述により、ライブラリ内部で正しいエンドポイントが選択されます
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `あなたは論理的思考を試すクイズ作家です。難易度[${difficulty}]で、初見の単語や記号の構造から正解を推論させるクイズを1問作成してください。
-        回答は必ず以下のJSON形式のみで出力してください。
+        回答は必ず以下のJSON形式のみで出力し、他の解説は含めないでください。
         {
           "question": "問題文",
           "answerOptions": [
