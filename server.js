@@ -19,7 +19,7 @@ app.post('/generate-quiz', async (req, res) => {
     }
 
     try {
-        // モデル名を最新の安定版に指定
+        // モデル名を最新の安定版 'gemini-1.5-flash-latest' に指定
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
         const prompt = `あなたは論理的思考を試すクイズ作家です。難易度[${difficulty}]で、初見の単語や記号の構造から正解を推論させるクイズを1問作成してください。
@@ -37,17 +37,14 @@ app.post('/generate-quiz', async (req, res) => {
         const response = await result.response;
         let text = response.text();
 
-        // JSONを抽出するロジック
         const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            text = jsonMatch[0];
-        }
+        if (jsonMatch) text = jsonMatch[0];
 
         const quizData = JSON.parse(text);
         res.json(quizData);
 
     } catch (error) {
-        console.error("DEBUG ERROR:", error.message);
+        console.error("AI ERROR:", error.message);
         res.status(500).json({ error: error.message });
     }
 });
