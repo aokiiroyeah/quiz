@@ -7,6 +7,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// RenderのEnvironmentにある「API_KEY」を使用
 const apiKey = process.env.API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -14,7 +15,8 @@ app.post('/generate-quiz', async (req, res) => {
     const { difficulty } = req.body;
     
     try {
-        // 最も安定して接続できるモデル名に変更
+        // 'gemini-1.5-flash' が見つからない場合のセーフティ
+        // APIバージョンによっては 'models/gemini-1.5-flash' とフルパスが必要な場合があります
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `あなたは論理的思考を試すクイズ作家です。難易度[${difficulty}]で、初見の単語や記号の構造から正解を推論させるクイズを1問作成してください。
@@ -37,13 +39,9 @@ app.post('/generate-quiz', async (req, res) => {
         
         res.json(quizData);
 
-} catch (error) {
-        // ここを詳細に書き換えます
-        console.error("--- EMERGENCY DEBUG START ---");
-        console.error("Error Name:", error.name);
-        console.error("Error Message:", error.message);
-        console.error("--- EMERGENCY DEBUG END ---");
-        
+    } catch (error) {
+        // ログに詳細を出して、何が「NotFound」なのか特定する
+        console.error("AI ERROR DETAILS:", error.message);
         res.status(500).json({ error: error.message });
     }
 });
