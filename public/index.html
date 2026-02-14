@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Logical Debugger AI</title>
+    <style>
+        body { font-family: monospace; background: #0f172a; color: #e2e8f0; padding: 2rem; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 8px; max-width: 600px; margin: auto; }
+        button { margin: 5px; padding: 10px; cursor: pointer; }
+        .option { display: block; width: 100%; margin: 10px 0; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Logical Quiz AI</h1>
+        <p>難易度を選択してください：</p>
+        <button onclick="fetchQuiz('Easy')">Easy</button>
+        <button onclick="fetchQuiz('Medium')">Medium</button>
+        <button onclick="fetchQuiz('Hard')">Hard</button>
+
+        <div id="quiz-area" style="margin-top:20px;"></div>
+    </div>
+
+    <script>
+        async function fetchQuiz(diff) {
+            document.getElementById('quiz-area').innerText = "AIが問題を生成中...";
+            const res = await fetch('/generate-quiz', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ difficulty: diff })
+            });
+            const data = await res.json();
+            renderQuiz(data);
+        }
+
+        function renderQuiz(data) {
+            let html = `<h3>${data.question}</h3>`;
+            data.answerOptions.forEach(opt => {
+                html += `<button class="option" onclick="alert('${opt.isCorrect ? '正解！' : '不正解'}\\n\\n根拠: ${opt.rationale}')">${opt.text}</button>`;
+            });
+            document.getElementById('quiz-area').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
