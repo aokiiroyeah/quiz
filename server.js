@@ -9,18 +9,18 @@ app.use(express.static('public'));
 
 // APIキーの取得
 const apiKey = process.env.API_KEY;
+// APIキーの有無を起動時にチェック
+if (!apiKey) {
+    console.error("CRITICAL: API_KEY is not set in environment variables.");
+}
 const genAI = new GoogleGenerativeAI(apiKey);
 
 app.post('/generate-quiz', async (req, res) => {
     const { difficulty } = req.body;
     
-    if (!apiKey) {
-        return res.status(500).json({ error: "APIキーが設定されていません。" });
-    }
-
     try {
-        // モデル名を最新の安定版 'gemini-1.5-flash-latest' に指定
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+        // モデル名を最も標準的な 'gemini-1.5-flash' に固定
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `あなたは論理的思考を試すクイズ作家です。難易度[${difficulty}]で、初見の単語や記号の構造から正解を推論させるクイズを1問作成してください。
         回答は必ず以下のJSON形式のみで出力し、他の解説テキストは一切含めないでください。
@@ -35,16 +35,16 @@ app.post('/generate-quiz', async (req, res) => {
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let text = response.text();
+        const text = response.text();
 
+        // JSON部分だけを抽出する安全策
         const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) text = jsonMatch[0];
-
-        const quizData = JSON.parse(text);
+        const quizData = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+        
         res.json(quizData);
 
     } catch (error) {
-        console.error("AI ERROR:", error.message);
+        console.error("AI ERROR DETAILS:", error.message);
         res.status(500).json({ error: error.message });
     }
 });
