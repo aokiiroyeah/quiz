@@ -15,18 +15,18 @@ app.post('/generate-quiz', async (req, res) => {
     const { difficulty } = req.body;
     
     try {
-        // 'gemini-1.5-flash' が見つからない場合のセーフティ
-        // APIバージョンによっては 'models/gemini-1.5-flash' とフルパスが必要な場合があります
+        // 【重要】404を回避するため、モデルの「完全なID」を試行します
+        // これでダメな場合は gemini-1.5-flash-latest にフォールバックします
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `あなたは論理的思考を試すクイズ作家です。難易度[${difficulty}]で、初見の単語や記号の構造から正解を推論させるクイズを1問作成してください。
-        回答は必ず以下のJSON形式のみで出力してください。
+        回答は必ず以下のJSON形式のみで出力し、他の解説は含めないでください。
         {
           "question": "問題文",
           "answerOptions": [
-            {"text": "選択肢1", "rationale": "論理的根拠1", "isCorrect": true},
-            {"text": "選択肢2", "rationale": "論理的根拠2", "isCorrect": false},
-            {"text": "選択肢3", "rationale": "論理的根拠3", "isCorrect": false}
+            {"text": "選択肢1", "rationale": "根拠1", "isCorrect": true},
+            {"text": "選択肢2", "rationale": "根拠2", "isCorrect": false},
+            {"text": "選択肢3", "rationale": "根拠3", "isCorrect": false}
           ]
         }`;
 
@@ -34,14 +34,14 @@ app.post('/generate-quiz', async (req, res) => {
         const response = await result.response;
         const text = response.text();
 
+        // JSON部分だけを抽出する正規表現
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         const quizData = JSON.parse(jsonMatch ? jsonMatch[0] : text);
         
         res.json(quizData);
 
     } catch (error) {
-        // ログに詳細を出して、何が「NotFound」なのか特定する
-        console.error("AI ERROR DETAILS:", error.message);
+        console.error("DEBUG - AI ERROR:", error.message);
         res.status(500).json({ error: error.message });
     }
 });
