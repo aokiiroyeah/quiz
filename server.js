@@ -22,8 +22,9 @@ app.post('/generate-quiz', async (req, res) => {
         // JSON以外の余計な文字を削除してパース
         const text = response.text().replace(/```json|```/g, '');
         res.json(JSON.parse(text));
-    } catch (error) {
-        res.status(500).send("AI生成エラー");
+} catch (error) {
+        console.error("DEBUG ERROR:", error.message); // これで詳細がわかります
+        res.status(500).json({ error: error.message });
     }
 });
 
